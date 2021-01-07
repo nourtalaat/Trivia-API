@@ -202,7 +202,7 @@ Base URL: `localhost:5000`
             * Usage: URL Parameter
             * Type: int
             * Default: N/A
-    Response:
+    * Response:
     ```bash
     {
         'success': true,
