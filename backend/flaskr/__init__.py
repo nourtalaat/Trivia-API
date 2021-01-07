@@ -6,6 +6,7 @@ from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import random
+from werkzeug.exceptions import NotFound
 
 from models import setup_db, Question, Category, db
 
@@ -37,17 +38,20 @@ def create_app(test_config=None):
   # GET route that queries, formats and returns all categories
   @app.route('/categories', methods=['GET'])
   def get_categories():
+    try:
+      rawCats = Category.query.all()
+      cats = {}
+      for rawCat in rawCats:
+        cat = rawCat.format()
+        cats[cat['id']] = cat['type']
 
-    rawCats = Category.query.all()
-    cats = {}
-    for rawCat in rawCats:
-      cat = rawCat.format()
-      cats[cat['id']] = cat['type']
-
-    return jsonify({
-      'success': True,
-      'categories': cats
-    })
+      return jsonify({
+        'success': True,
+        'categories': cats
+      })
+    # In case of a malformed request return 400 (bad request)
+    except Exception:
+      abort(400)
 
 
   '''
@@ -65,29 +69,41 @@ def create_app(test_config=None):
   # GET route to retrieve paginated questions and categories as well as total number of questions
   @app.route('/questions', methods=['GET'])
   def get_questions():
-    # get current page, defaults to 1 if not present
-    page = request.args.get('page', default=1, type=int)
+    try:
+      # get current page, defaults to 1 if not present
+      page = request.args.get('page', default=1, type=int)
 
-    # Query one page of questions then format them and extract total number of questions
-    quests_query = Question.query.order_by(Question.category.asc()).paginate(page, QUESTIONS_PER_PAGE)
-    total_quests = quests_query.total
-    rawQuests = quests_query.items
-    quests = [rawQuest.format() for rawQuest in rawQuests]
+      # Query one page of questions then format them and extract total number of questions
+      quests_query = Question.query.order_by(Question.category.asc()).paginate(page, QUESTIONS_PER_PAGE)
+      total_quests = quests_query.total
+      rawQuests = quests_query.items
+      quests = [rawQuest.format() for rawQuest in rawQuests]
 
-    # Query and format all categories
-    rawCats = Category.query.all()
-    cats = {}
-    for rawCat in rawCats:
-      cat = rawCat.format()
-      cats[cat['id']] = cat['type']
+      # Query and format all categories
+      rawCats = Category.query.all()
+      cats = {}
+      for rawCat in rawCats:
+        cat = rawCat.format()
+        cats[cat['id']] = cat['type']
 
-    return jsonify({
-      'success': True,
-      'questions': quests,
-      'total_questions': total_quests,
-      'current_category': '1',
-      'categories': cats
-    })
+      current_cats = []
+      for quest in quests:
+        cat = quest['category']
+        if cat not in current_cats:
+          current_cats.append(cat)
+      return jsonify({
+        'success': True,
+        'questions': quests,
+        'total_questions': total_quests,
+        'current_category': current_cats,
+        'categories': cats
+      })
+    # In case of page being out of range
+    except NotFound:
+      abort(404)
+    # In case of a malformed request return 400 (bad request)
+    except Exception:
+      abort(400)
 
   '''
   OK @TODO: 
@@ -171,11 +187,18 @@ def create_app(test_config=None):
       resultQuests = [rRQuest.format() for rRQuest in rawResultQuests]
       # Gets total_questions count
       total_quests = Question.query.count()
+
+      current_cats = []
+      for quest in resultQuests:
+        cat = quest['category']
+        if cat not in current_cats:
+          current_cats.append(cat)
+
       return jsonify({
         'success': True,
         'questions': resultQuests,
         'total_questions': total_quests,
-        'current_category': "1"
+        'current_category': current_cats
       })
     # In case of a malformed request we abort with status 400 (bad request)
     except Exception:
