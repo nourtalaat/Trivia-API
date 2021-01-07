@@ -47,7 +47,16 @@ Pre-requisites include:
 * pytz
 * six
 
-To install all of them at once, simply `cd` into the `backend` directory and using your terminal execute `pip install -r requirements.txt`, afterward you'd be ready to set the environment variables using:
+To install all of them at once, simply `cd` into the `backend` directory and using your terminal execute `pip install -r requirements.txt`
+
+Before you try starting the server you need to initialize the `database credentials`!
+
+You can do this by creating a file named `.env` in the `backend` directory and inserting two lines:
+```bash
+DB_USER=<postgres_db_username>
+DB_PASSWORD=<postgres_db_password>
+```
+Replace the `<postgres_db_username>` and `<postgres_db_password>` with your actual credentials, afterwards you'd be ready to set the environment variables to start the Flask app, this depends on which OS you're on and which command-line environment you're using:
 
 * Windows using CMD:
     * `set FLASK_APP=flaskr`
@@ -59,7 +68,7 @@ To install all of them at once, simply `cd` into the `backend` directory and usi
     * `$env:FLASK_ENV='development'`
     * `flask run`
 
-* Unix (e.g. Linux and MacOS):
+* Unix using Bash (e.g. Linux and MacOS):
     * `export FLASK_APP=flaskr`
     * `export FLASK_ENV=development`
     * `flask run`
@@ -320,3 +329,15 @@ Aside from the response formats shown above which will return in the case of a s
         'message': 'Internal Server Error'
     }
     ```
+
+## Testing
+
+I have included a number of tests in the file `test_flaskr.py` inside the `backend` directory.
+
+To run them simply navigate your terminal to the `backend` directory and execute `python test_flaskr.py` or `python3 test_flaskr.py`.
+
+If you think there are any test cases I am missing please let me know!
+
+## Authors
+
+Your friendly neighborhood software developer, Nour A. Talaat.
